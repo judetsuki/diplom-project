@@ -72,7 +72,24 @@ function App() {
       <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', marginBottom: '20px' }}>
           <h2>Учет долгов бизнеса 💼</h2>
-          <button onClick={handleLogout} style={{ padding: '5px 15px', cursor: 'pointer' }}>Выйти</button>
+          <button 
+  onClick={handleLogout} 
+  style={{ 
+    padding: '8px 16px', 
+    cursor: 'pointer',
+    backgroundColor: '#dc3545', 
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontWeight: 'bold',
+    transition: 'background-color 0.2s',
+  }}
+  onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'} 
+  onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
+>
+  Выйти
+</button>
+
         </div>
 
         <form onSubmit={addDebt} style={{ display: 'flex', gap: '10px', marginBottom: '30px', background: '#f9f9f9', padding: '15px', borderRadius: '8px' }}>
