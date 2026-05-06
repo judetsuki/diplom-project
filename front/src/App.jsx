@@ -18,7 +18,7 @@ function App() {
 
   const fetchDebts = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/debts');
+      const response = await axios.get('/api/debts');
       setDebts(response.data);
     } catch (err) {
       console.error("Ошибка при загрузке долгов", err);
@@ -29,7 +29,7 @@ function App() {
     e.preventDefault();
     setError('');
     try {
-      const response = await axios.post('http://localhost:5000/login', { username, password });
+      const response = await axios.post('/api/login', { username, password });
       if (response.data.success) {
         localStorage.setItem('token', response.data.token);
         setToken(response.data.token);
@@ -50,7 +50,7 @@ function App() {
     if (!newDebt.client || !newDebt.amount) return;
 
     try {
-      const response = await axios.post('http://localhost:5000/debts', newDebt);
+      const response = await axios.post('/api/debts', newDebt);
       setDebts([...debts, response.data]); 
       setNewDebt({ client: '', amount: '', comment: '' }); 
     } catch (err) {
@@ -60,7 +60,7 @@ function App() {
 
   const deleteDebt = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/debts/${id}`);
+      await axios.delete(`/api/debts/${id}`);
       setDebts(debts.filter(d => d.id !== id)); 
     } catch (err) {
       console.error("Ошибка при удалении", err);

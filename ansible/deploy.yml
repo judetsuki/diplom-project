@@ -1,0 +1,29 @@
+- name: Deploy Debt App to Yandex Cloud
+  hosts: web_servers
+  become: yes
+  tasks:
+    - name: Update apt and install dependencies
+      apt:
+        update_cache: yes
+        name: [apt-transport-https, ca-certificates, curl, software-properties-common]
+
+    - name: Install Docker Compose (Classic)
+      apt:
+        name: docker-compose
+        state: present
+
+    - name: Ensure Docker is running
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Copy docker-compose.yml to server
+      copy:
+        src: ../docker-compose.yml
+        dest: /home/ubuntu/docker-compose.yml
+
+    - name: Pull images and start app
+      shell: |
+        docker-compose -f /home/ubuntu/docker-compose.yml pull
+        docker-compose -f /home/ubuntu/docker-compose.yml up -d
