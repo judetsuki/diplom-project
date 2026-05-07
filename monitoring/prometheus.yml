@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 20s
+
+scrape_configs:
+  - job_name: 'docker_stats'
+    static_configs:
+      - targets: ['cadvisor:8080']
