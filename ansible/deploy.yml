@@ -12,6 +12,17 @@
         name: docker-compose-v2 
         state: present
 
+    - name: Create monitoring directory on server
+      file:
+        path: /home/ubuntu/monitoring
+        state: directory
+        mode: '0755'
+
+    - name: Copy prometheus.yml to server
+      copy:
+        src: ../monitoring/prometheus.yml
+        dest: /home/ubuntu/monitoring/prometheus.yml
+
     - name: Copy docker-compose.yml to server
       copy:
         src: ../docker-compose.yml
