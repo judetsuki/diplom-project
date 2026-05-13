@@ -85,7 +85,7 @@ const authenticateToken = (req, res, next) => {
 
 
 // Регистрация
-app.post('/api/register', async (req, res) => {
+app.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -108,7 +108,7 @@ app.post('/api/register', async (req, res) => {
 });
 
 // Вход
-app.post('/api/login', async (req, res) => {
+app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -137,7 +137,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 // Получение долгов 
-app.get('/api/debts', authenticateToken, async (req, res) => {
+app.get('/debts', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM debts WHERE user_id = $1 ORDER BY id DESC', [req.user.id]);
     res.json(result.rows);
@@ -147,7 +147,7 @@ app.get('/api/debts', authenticateToken, async (req, res) => {
 });
 
 // Создание записи о долге 
-app.post('/api/debts', authenticateToken, async (req, res) => {
+app.post('/debts', authenticateToken, async (req, res) => {
   try {
     const { client, amount, comment, status } = req.body;
     const result = await pool.query(
@@ -161,7 +161,7 @@ app.post('/api/debts', authenticateToken, async (req, res) => {
 });
 
 // Редактирование записи о долге 
-app.put('/api/debts/:id', authenticateToken, async (req, res) => {
+app.put('/debts/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { client, amount, comment, status } = req.body;
@@ -181,7 +181,7 @@ app.put('/api/debts/:id', authenticateToken, async (req, res) => {
   }
 });
 
-app.delete('/api/debts/:id', authenticateToken, async (req, res) => {
+app.delete('/debts/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query('DELETE FROM debts WHERE id = $1 AND user_id = $2 RETURNING *', [id, req.user.id]);
