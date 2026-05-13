@@ -16,21 +16,23 @@ const STATUS_COLORS = {
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const [currentUser, setCurrentUser] = useState(localStorage.getItem('username') || '');
+  
   const [debts, setDebts] = useState([]);
   const [newDebt, setNewDebt] = useState({ client: '', amount: '', comment: '', status: 'active' });
   
-  // Поиск и фильтрация
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'active', 'paid', 'overdue'
+  const [statusFilter, setStatusFilter] = useState('all'); 
 
-  // Авторизация
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  // Редактирование
   const [editingId, setEditingId] = useState(null);
   const [editFormData, setEditFormData] = useState({ client: '', amount: '', comment: '', status: 'active' });
+
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [regSuccess, setRegSuccess] = useState('');
 
   useEffect(() => {
     if (token) {
@@ -57,17 +59,44 @@ function App() {
       const response = await axios.post('/api/login', { username, password });
       if (response.data.success) {
         localStorage.setItem('token', response.data.token);
+        localStorage.setItem('username', response.data.username);
         setToken(response.data.token);
+        setCurrentUser(response.data.username);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Неверный логин или пароль');
     }
   };
 
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setError('');
+    setRegSuccess('');
+    try {
+      const response = await axios.post('/api/register', { username, password });
+      if (response.data.success) {
+        setRegSuccess('Регистрация успешна! Теперь вы можете войти.');
+        setIsRegistering(false);
+        setPassword('');
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Ошибка при регистрации');
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('username'); 
     setToken(null);
+    setCurrentUser('');
     setDebts([]);
+  };
+
+  const toggleMode = (toRegister) => {
+    setError('');
+    setRegSuccess('');
+    setPassword('');
+    setIsRegistering(toRegister);
   };
 
   const addDebt = async (e) => {
@@ -75,8 +104,7 @@ function App() {
     if (!newDebt.client || !newDebt.amount) return;
     try {
       const response = await axios.post('/api/debts', { ...newDebt, amount: Number(newDebt.amount) });
-      const createdDebt = Array.isArray(response.data) ? response.data[0] : response.data;
-      setDebts([createdDebt, ...debts]); 
+      setDebts([response.data, ...debts]); 
       setNewDebt({ client: '', amount: '', comment: '', status: 'active' }); 
     } catch (err) {
       console.error("Ошибка при добавлении", err);
@@ -102,8 +130,7 @@ function App() {
     e.preventDefault();
     try {
       const response = await axios.put(`/api/debts/${id}`, { ...editFormData, amount: Number(editFormData.amount) });
-      const updatedDebt = Array.isArray(response.data) ? response.data[0] : response.data;
-      setDebts(debts.map(d => d.id === id ? updatedDebt : d));
+      setDebts(debts.map(d => d.id === id ? response.data : d));
       setEditingId(null);
     } catch (err) {
       console.error("Ошибка при обновлении", err);
@@ -123,9 +150,16 @@ function App() {
       <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto', fontFamily: 'sans-serif' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', marginBottom: '20px' }}>
           <h2>Учет долгов бизнеса 💼</h2>
-          <button onClick={handleLogout} style={{ padding: '8px 16px', cursor: 'pointer', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold' }}>Выйти</button>
+          {/* Блок приветствия пользователя */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <span style={{ fontSize: '1em', color: '#555' }}>
+              Пользователь: <strong style={{ color: '#007bff' }}>{currentUser}</strong>
+            </span>
+            <button onClick={handleLogout} style={{ padding: '8px 16px', cursor: 'pointer', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold' }}>Выйти</button>
+          </div>
         </div>
 
+        {/* Форма добавления */}
         <form onSubmit={addDebt} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px', background: '#f9f9f9', padding: '15px', borderRadius: '8px' }}>
           <input placeholder="Клиент" value={newDebt.client} onChange={e => setNewDebt({...newDebt, client: e.target.value})} required />
           <input type="number" placeholder="Сумма" value={newDebt.amount} onChange={e => setNewDebt({...newDebt, amount: e.target.value})} required style={{ width: '100px' }} />
@@ -138,6 +172,7 @@ function App() {
           <button type="submit" style={{ background: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '0 20px' }}>Добавить</button>
         </form>
 
+        {/* Блок поиска */}
         <div style={{ display: 'flex', gap: '15px', marginBottom: '25px', background: '#f1f3f5', padding: '15px', borderRadius: '8px', alignItems: 'center' }}>
           <div style={{ flex: 1 }}>
             <input 
@@ -230,16 +265,41 @@ function App() {
     );
   }
 
+  // ФОРМА РЕГИСТРАЦИИ
+  if (isRegistering) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '100px', fontFamily: 'sans-serif' }}>
+        <div style={{ width: '300px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+          <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Регистрация</h2>
+          <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <input type="text" placeholder="Придумайте логин" value={username} onChange={(e) => setUsername(e.target.value)} required />
+            <input type="password" placeholder="Придумайте пароль" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <button type="submit" style={{ padding: '10px', background: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Зарегистрироваться</button>
+          </form>
+          {error && <p style={{ color: 'red', textAlign: 'center', fontSize: '0.9em', marginTop: '10px' }}>{error}</p>}
+          <p style={{ textAlign: 'center', fontSize: '0.9em', marginTop: '20px' }}>
+            Уже есть аккаунт? <span onClick={() => toggleMode(false)} style={{ color: '#007bff', cursor: 'pointer', textDecoration: 'underline' }}>Войти</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ФОРМА ВХОДА
   return (
     <div style={{ display: 'flex', justifyContent: 'center', marginTop: '100px', fontFamily: 'sans-serif' }}>
-      <div style={{ width: '300px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
-        <h2 style={{ textAlign: 'center' }}>Вход</h2>
+      <div style={{ width: '300px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Вход</h2>
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <input type="text" placeholder="Логин" value={username} onChange={e => setUsername(e.target.value)} required />
-          <input type="password" placeholder="Пароль" value={password} onChange={e => setPassword(e.target.value)} required />
-          <button type="submit" style={{ padding: '10px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Войти</button>
+          <input type="text" placeholder="Логин" value={username} onChange={(e) => setUsername(e.target.value)} required />
+          <input type="password" placeholder="Пароль" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <button type="submit" style={{ padding: '10px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Войти</button>
         </form>
-        {error && <p style={{ color: 'red', textAlign: 'center', fontSize: '0.9em' }}>{error}</p>}
+        {error && <p style={{ color: 'red', textAlign: 'center', fontSize: '0.9em', marginTop: '10px' }}>{error}</p>}
+        {regSuccess && <p style={{ color: 'green', textAlign: 'center', fontSize: '0.9em', marginTop: '10px' }}>{regSuccess}</p>}
+        <p style={{ textAlign: 'center', fontSize: '0.9em', marginTop: '20px' }}>
+          Нет аккаунта? <span onClick={() => toggleMode(true)} style={{ color: '#007bff', cursor: 'pointer', textDecoration: 'underline' }}>Создать аккаунт</span>
+        </p>
       </div>
     </div>
   );
