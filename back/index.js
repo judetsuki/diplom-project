@@ -19,29 +19,31 @@ const initDb = async () => {
   let connected = false;
   while (!connected) {
     try {
-      await pool.query('SELECT 1');
+      await pool.query('SELECT 1'); 
       
-      console.log('Сброс старой структуры данных для изоляции пользователей...');
-      await pool.query('DROP TABLE IF EXISTS debts');
-      await pool.query('DROP TABLE IF EXISTS users');
-      await pool.query('DROP TYPE IF EXISTS debt_status');
+      console.log('Безопасная проверка и инициализация структуры базы данных...');
 
-      console.log('Создание новой структуры базы данных...');
-      
       await pool.query(`
-        CREATE TABLE users (
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'debt_status') THEN
+            CREATE TYPE debt_status AS ENUM ('active', 'paid', 'overdue');
+          END IF;
+        END $$;
+      `);
+
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS users (
           id SERIAL PRIMARY KEY,
           username VARCHAR(50) UNIQUE NOT NULL,
           password TEXT NOT NULL
         )
       `);
 
-      await pool.query(`CREATE TYPE debt_status AS ENUM ('active', 'paid', 'overdue')`);
-
       await pool.query(`
-        CREATE TABLE debts (
+        CREATE TABLE IF NOT EXISTS debts (
           id SERIAL PRIMARY KEY,
-          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, -- Связь с пользователем
+          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
           client TEXT NOT NULL,
           amount NUMERIC(12, 2) NOT NULL,
           comment TEXT,
@@ -50,13 +52,17 @@ const initDb = async () => {
         )
       `);
 
-      const hashedAdminPassword = await bcrypt.hash('password123', SALT_ROUNDS);
-      await pool.query(
-        'INSERT INTO users (username, password) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-        ['admin', hashedAdminPassword]
-      );
+      const adminCheck = await pool.query("SELECT * FROM users WHERE username = 'admin'");
+      if (adminCheck.rows.length === 0) {
+        const hashedAdminPassword = await bcrypt.hash('password123', SALT_ROUNDS);
+        await pool.query(
+          'INSERT INTO users (username, password) VALUES ($1, $2)',
+          ['admin', hashedAdminPassword]
+        );
+        console.log('Создан дефолтный аккаунт: admin / password123');
+      }
 
-      console.log('База данных успешно инициализирована. Настроена изоляция данных.');
+      console.log('База данных Postgres готова. Данные защищены от стирания.');
       connected = true;
     } catch (err) {
       console.log('Повторная попытка подключения к Postgres через 2 секунды...', err.message);
