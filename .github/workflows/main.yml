@@ -42,4 +42,6 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
           
-          ansible-playbook -i ansible/inventory.ini ansible/deploy.yml --extra-vars "target_host='${{ secrets.SERVER_IP }}' env_db_password='${{ secrets.DB_PASSWORD }}' env_jwt_secret='${{ secrets.JWT_SECRET }}'"
+          ansible-playbook -i ansible/inventory.ini ansible/deploy.yml \
+            -e "ansible_host=${{ secrets.SERVER_IP }}" \
+            --extra-vars "env_db_password='${{ secrets.DB_PASSWORD }}' env_jwt_secret='${{ secrets.JWT_SECRET }}'"
