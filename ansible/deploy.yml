@@ -28,6 +28,11 @@
         src: ../docker-compose.yml
         dest: /home/ubuntu/docker-compose.yml
 
+    - name: create .env file with secrets on server
+      template:
+        src: .env.j2
+        dest:/home/ubuntu/.env
+
     - name: Pull images and start app
       shell: |
         docker compose -f /home/ubuntu/docker-compose.yml pull

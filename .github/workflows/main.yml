@@ -30,3 +30,16 @@ jobs:
           context: ./front
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/debt-front:latest
+
+      
+      - name: Configuring ssh key to connect Yandex Cloud
+        uses: webfactory/ssh-agent@v0.8.0 
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }} 
+
+      - name: Starting ansible deploy and transfering secrets
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+          
+          ansible-playbook -i ansible/inventory.ini ansible/deploy.yml --extra-vars "target_host='${{ secrets.SERVER_IP }}' env_db_password='${{ secrets.DB_PASSWORD }}' env_jwt_secret='${{ secrets.JWT_SECRET }}'"
