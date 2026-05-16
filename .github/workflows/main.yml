@@ -33,17 +33,18 @@ jobs:
 
       - name: Yandex Cloud CLI setup and install
         run: |
-          curl -sSL https://yandexcloud.net | bash -s -- -i /home/runner/.yc -n
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i /home/runner/.yc -n
+          
           echo "/home/runner/.yc/bin" >> $GITHUB_PATH
           
-      - name: Getting latest dynamic ip address
+      - name: acquiring dynamic ip
         id: get_ip
         run: |
           /home/runner/.yc/bin/yc config set token ${{ secrets.YC_OAUTH_TOKEN }}
           /home/runner/.yc/bin/yc config set cloud-id ${{ secrets.YC_CLOUD_ID }}
           /home/runner/.yc/bin/yc config set folder-id ${{ secrets.YC_FOLDER_ID }}
           
-          VM_IP=$(yc compute instance get compute-vm-2-1-10-hdd-1778081941293 --format json | jq -r '.network_interfaces[0].one_to_one_nat.address')
+          VM_IP=$(/home/runner/.yc/bin/yc compute instance get compute-vm-2-1-10-hdd-1778081941293 --format json | jq -r '.network_interfaces[0].primary_v4_address.one_to_one_nat.address')
           
           echo "CURRENT_SERVER_IP=$VM_IP" >> $GITHUB_ENV
           echo "Найден актуальный IP сервера: $VM_IP"
