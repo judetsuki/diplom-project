@@ -62,4 +62,4 @@ jobs:
           
           ansible-playbook -i ansible/inventory.ini ansible/deploy.yml \
             -e "ansible_host=${{ env.CURRENT_SERVER_IP }}" \
-            --extra-vars "env_db_password='${{ secrets.DB_PASSWORD }}' env_jwt_secret='${{ secrets.JWT_SECRET }}'"
+            --extra-vars "env_db_password='${{ secrets.DB_PASSWORD }}' env_jwt_secret='${{ secrets.JWT_SECRET }}' env_grafana_password='${{ secrets.GRAFANA_PASSWORD }}'"
