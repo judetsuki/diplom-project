@@ -31,6 +31,23 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/debt-front:latest
 
+      - name: Yandex Cloud CLI setup and install
+        run: |
+          curl -sSL https://yandexcloud.net | bash -s -- -i /home/runner/.yc -n
+          echo "/home/runner/.yc/bin" >> $GITHUB_PATH
+          
+      - name: Getting latest dynamic ip address
+        id: get_ip
+        run: |
+          /home/runner/.yc/bin/yc config set token ${{ secrets.YC_OAUTH_TOKEN }}
+          /home/runner/.yc/bin/yc config set cloud-id ${{ secrets.YC_CLOUD_ID }}
+          /home/runner/.yc/bin/yc config set folder-id ${{ secrets.YC_FOLDER_ID }}
+          
+          VM_IP=$(yc compute instance get compute-vm-2-1-10-hdd-1778081941293 --format json | jq -r '.network_interfaces[0].one_to_one_nat.address')
+          
+          echo "CURRENT_SERVER_IP=$VM_IP" >> $GITHUB_ENV
+          echo "Найден актуальный IP сервера: $VM_IP"
+
       
       - name: Configuring ssh key to connect Yandex Cloud
         uses: webfactory/ssh-agent@v0.8.0 
@@ -40,8 +57,8 @@ jobs:
       - name: Starting ansible deploy and transfering secrets
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ env.CURRENT_SERVER_IP }} >> ~/.ssh/known_hosts
           
           ansible-playbook -i ansible/inventory.ini ansible/deploy.yml \
-            -e "ansible_host=${{ secrets.SERVER_IP }}" \
+            -e "ansible_host=${{ env.CURRENT_SERVER_IP }}" \
             --extra-vars "env_db_password='${{ secrets.DB_PASSWORD }}' env_jwt_secret='${{ secrets.JWT_SECRET }}'"
