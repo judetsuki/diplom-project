@@ -1,5 +1,7 @@
 [![CI/CD Pipeline](https://github.com/judetsuki/diplom-project/actions/workflows/main.yml/badge.svg)](https://github.com/judetsuki/diplom-project/actions/workflows/main.yml)
 
+IP: 158.160.139.105
+
 # Приложение для учета долгов бизнеса
 
 Простое и безопасное веб-приложение (SPA) для ведения учета задолженностей клиентов. Проект разработан с поддержкой многопользовательского режима (полная изоляция данных) и разворачивается в изолированном Docker-окружении под управлением Nginx.
