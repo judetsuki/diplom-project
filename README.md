@@ -1,6 +1,6 @@
 [![CI/CD Pipeline](https://github.com/judetsuki/diplom-project/actions/workflows/main.yml/badge.svg)](https://github.com/judetsuki/diplom-project/actions/workflows/main.yml)
 
-IP: 158.160.139.105
+# Адрес для доступа к веб-сервису: http://diplom-debt-app.duckdns.org/
 
 # Приложение для учета долгов бизнеса
 

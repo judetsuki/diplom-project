@@ -52,7 +52,7 @@ services:
     depends_on:
       - backend
     
-    duckdns:
+  duckdns:
     image: lscr.io/linuxserver/duckdns:latest
     container_name: duckdns
     environment:
