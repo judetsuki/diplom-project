@@ -51,6 +51,18 @@ services:
       - "80:80"
     depends_on:
       - backend
+    
+    duckdns:
+    image: lscr.io/linuxserver/duckdns:latest
+    container_name: duckdns
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Moscow
+      - SUBDOMAINS=diplom-debt-app
+      - TOKEN=a13ac229-7fbb-47f6-bd6e-b74e3694a5fe
+    restart: unless-stopped
+
 
 volumes:
   postgres_data:
