@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:15-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -14,6 +15,7 @@ services:
       retries: 5
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
+    restart: unless-stopped
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
@@ -22,6 +24,7 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
+    restart: unless-stopped
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
@@ -29,6 +32,7 @@ services:
 
   grafana:
     image: grafana/grafana:latest
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
@@ -38,6 +42,7 @@ services:
 
   backend:
     image: mtfoxtrot/debt-back:latest
+    restart: unless-stopped
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/debt_db
       - SECRET_KEY=${SECRET_KEY}
@@ -47,6 +52,7 @@ services:
 
   frontend:
     image: mtfoxtrot/debt-front:latest
+    restart: unless-stopped
     ports:
       - "80:80"
     depends_on:
