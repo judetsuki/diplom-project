@@ -11,7 +11,7 @@
 *   **Frontend:** React (Vite), Axios для HTTP-запросов, встроенный контекст авторизации.
 *   **Backend:** Node.js, Express.js, JSON Web Tokens
 *   **Database:** PostgreSQL
-*   **Infrastructure:** Docker, Docker Compose, Nginx, Ansible, Yandex Cloud.
+*   **Infrastructure:** Docker, Docker Compose, Nginx, Ansible, Yandex Cloud
 
 ##  Функционал приложения
 
